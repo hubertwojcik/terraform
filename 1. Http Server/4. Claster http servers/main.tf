@@ -4,18 +4,23 @@ provider "aws" {
 }
 
 # Konfiguracja szablonu instancji EC2 dla Auto Scaling Group
-resource "aws_launch_configuration" "example" {
+resource "aws_launch_template" "example" {
     image_id = "ami-0a664360bb4a53714"  # ID obrazu AMI (Amazon Machine Image) - system operacyjny
     instance_type = "t3.micro"  # Typ instancji - rozmiar zasobów (CPU, RAM)
-    security_groups = [aws_security_group.instance.id]  # Grupa bezpieczeństwa określająca reguły firewall
+    
+    # Lista ID grup bezpieczeństwa przypisanych do instancji w VPC
+    vpc_security_group_ids = [aws_security_group.instance.id]
 
-    # Skrypt uruchamiany przy starcie instancji - instaluje Python3 i uruchamia serwer HTTP
-    user_data = <<-EOF
-                #!/bin/bash
-                command -v python3 >/dev/null 2>&1 || (yum install -y python3 || dnf install -y python3 || apt-get update ** apt-get install -y python3)
-                echo "Hello worlds" >> index.html
-                nphup python3 -m http.server ${var.server_port} &
-                EOF   
+    # Skrypt uruchamiany przy starcie instancji - base64encode koduje skrypt do formatu wymaganego przez AWS
+    # Skrypt: sprawdza czy Python3 jest zainstalowany, instaluje go jeśli potrzeba, tworzy index.html i uruchamia serwer HTTP
+    user_data = base64encode(<<EOF
+              #!/bin/bash
+              command -v python3 >/dev/null 2>&1 || (yum install -y python3 || dnf install -y python3 || (apt-get update && apt-get install -y python3))
+              echo "Hello world" > index.html
+              nohup python3 -m http.server ${var.server_port} &
+              EOF
+              )
+  
     
     # Lifecycle hook - tworzy nową instancję przed zniszczeniem starej (zero-downtime deployment)
     lifecycle { 
@@ -36,8 +41,7 @@ resource "aws_security_group" "instance" {
 }
 
 # Auto Scaling Group - automatycznie skaluje liczbę instancji w zależności od obciążenia
-resource "aws_autoscaling_group" "example" {
-    launch_configuration = aws_launch_configuration.example  # Szablon konfiguracji dla nowych instancji
+resource "aws_autoscaling_group" "example" {    
     vpc_zone_identifier = data.aws_subnets.default.ids  # Subnety, w których będą tworzone instancje
 
     target_group_arns = [aws_lb_target_group.asg.arn]  # Grupa docelowa Load Balancera
@@ -46,6 +50,11 @@ resource "aws_autoscaling_group" "example" {
 
     min_size = 2  # Minimalna liczba działających instancji
     max_size = 10  # Maksymalna liczba instancji (Auto Scaling może zwiększyć do tej wartości)
+
+    launch_template {
+        id = aws_launch_template.example.id
+        version = "$Latest"
+    }
 
     # Tagi przypisywane do każdej instancji w grupie
     tag {
