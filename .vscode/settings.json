@@ -1,0 +1,40 @@
+{
+  // Wyłączenie serwera językowego Terraform (główne źródło autouzupełniania)
+  "terraform.languageServer.enabled": false,
+  
+  // Wyłączenie wszystkich funkcji autouzupełniania dla plików Terraform
+  "[terraform]": {
+    "editor.quickSuggestions": {
+      "comments": "off",
+      "strings": "off",
+      "other": "off"
+    },
+    "editor.suggestOnTriggerCharacters": false,
+    "editor.acceptSuggestionOnEnter": "off",
+    "editor.tabCompletion": "off",
+    "editor.wordBasedSuggestions": "off",
+    "editor.parameterHints.enabled": false,
+    "editor.suggest.enabled": false,
+    "editor.inlineSuggest.enabled": false
+  },
+  
+  // Wyłączenie autouzupełniania w całym edytorze dla plików Terraform
+  "[terraform-vars]": {
+    "editor.quickSuggestions": {
+      "comments": "off",
+      "strings": "off",
+      "other": "off"
+    },
+    "editor.suggestOnTriggerCharacters": false,
+    "editor.acceptSuggestionOnEnter": "off",
+    "editor.tabCompletion": "off",
+    "editor.wordBasedSuggestions": "off",
+    "editor.parameterHints.enabled": false,
+    "editor.suggest.enabled": false,
+    "editor.inlineSuggest.enabled": false
+  },
+  
+  // Zachowanie kolorowania składni
+  "editor.semanticHighlighting.enabled": true
+}
+
