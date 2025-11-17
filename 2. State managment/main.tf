@@ -47,12 +47,7 @@ resource "aws_dynamodb_table" "terraform_locks" {
 }
 
 terraform {
-    backend "s3" {
-        bucket = "hubert-wojcik-terraform-state"
+    backend "s3" {        
         key = "global/s3/terraform.tfstate"
-        region = "eu-north-1"
-
-        dynamodb_table = "hubert-terraform-state"
-        encrypt = true
     }
 }
